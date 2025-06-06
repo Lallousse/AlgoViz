@@ -67,12 +67,14 @@ function generatePrimSteps(graph, startNodeId) {
             if (!fromNode || !toNode) continue;
             
             // Check if this edge connects a visited node to an unvisited node
+            // For MST algorithms, we treat all edges as undirected
             if (visited.has(edge.from) && !visited.has(edge.to)) {
                 if (edge.weight < minWeight) {
                     minEdge = edge;
                     minWeight = edge.weight;
                 }
-            } else if (!edge.isDirected && visited.has(edge.to) && !visited.has(edge.from)) {
+            } else if (visited.has(edge.to) && !visited.has(edge.from)) {
+                // Always consider edges in both directions, regardless of isDirected flag
                 if (edge.weight < minWeight) {
                     minEdge = edge;
                     minWeight = edge.weight;

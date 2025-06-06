@@ -70,6 +70,7 @@ function generateKruskalSteps(graph) {
     let stepCount = 1;
     
     // Process each edge in ascending order of weight
+    // Note: Kruskal's algorithm treats all edges as undirected, ignoring any direction flags
     for (const edge of sortedEdges) {
         const fromNode = graph.getNode(edge.from);
         const toNode = graph.getNode(edge.to);
