@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4f46e5">
+    <title>AlgoViz - Graph Algorithm Visualizer</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-project-diagram"></i> AlgoViz</h1>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="control-panel">
+                <!-- File Operations Card -->
+                <div class="card">
+                    <h2><i class="fas fa-file"></i> File Operations</h2>
+                    <div class="button-group">
+                        <button id="new-design-btn" class="btn" title="New Design">
+                            <i class="fas fa-file-plus"></i> New Design
+                        </button>
+                        <button id="save-design-btn" class="btn" title="Save Design">
+                            <i class="fas fa-save"></i> Save Design
+                        </button>
+                        <button id="load-design-btn" class="btn" title="Load Design">
+                            <i class="fas fa-folder-open"></i> Load Design
+                        </button>
+                        <input type="file" id="file-input" accept=".json" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Graph Info Card -->
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> Graph Info</h2>
+                    <div class="info-group">
+                        <div class="info-item">
+                            <span class="info-label">Nodes:</span>
+                            <span id="node-count" class="info-value">0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Edges:</span>
+                            <span id="edge-count" class="info-value">0</span>
+                        </div>
+                        <div id="start-node-container" class="info-item hidden">
+                            <span class="info-label">Start Node:</span>
+                            <span id="start-node" class="info-value">None</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drawing Tools Card -->
+                <div class="card">
+                    <h2><i class="fas fa-pencil-alt"></i> Drawing Tools</h2>
+                    <div class="button-group">
+                        <button id="select-move-btn" class="btn active" title="Select / Move">
+                            <i class="fas fa-mouse-pointer"></i> Select / Move
+                        </button>
+                        <button id="add-node-btn" class="btn" title="Add Node">
+                            <i class="fas fa-plus-circle"></i> Add Node
+                        </button>
+                        <button id="add-edge-btn" class="btn" title="Add Edge">
+                            <i class="fas fa-project-diagram"></i> Add Edge
+                        </button>
+                        <button id="delete-selected-btn" class="btn disabled" title="Delete Selected">
+                            <i class="fas fa-trash"></i> Delete Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Algorithm Controls Card -->
+                <div class="card">
+                    <h2><i class="fas fa-cogs"></i> Algorithm Controls</h2>
+                    <div class="form-group">
+                        <label for="algorithm-select">Algorithm:</label>
+                        <select id="algorithm-select" class="select">
+                            <option value="prim">Prim's Algorithm</option>
+                            <option value="kruskal">Kruskal's Algorithm</option>
+                            <option value="dijkstra">Dijkstra's Algorithm</option>
+                            <option value="bellmanFord">Bellman-Ford Algorithm</option>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button id="select-start-node-btn" class="btn" title="Select Start Node">
+                            <i class="fas fa-hand-pointer"></i> Select Start Node
+                        </button>
+                        <button id="start-btn" class="btn primary" title="Start">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button id="pause-btn" class="btn disabled" title="Pause">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                        <button id="next-btn" class="btn" title="Next Step">
+                            <i class="fas fa-step-forward"></i> Next
+                        </button>
+                        <button id="reset-btn" class="btn" title="Reset Graph">
+                            <i class="fas fa-undo"></i> Reset Graph
+                        </button>
+                        <button id="toggle-steps-panel-btn" class="btn disabled" title="Show Steps Panel">
+                            <i class="fas fa-table"></i> Show Steps Panel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="graph-canvas-container">
+                <svg id="graph-canvas" class="graph-canvas"></svg>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Explanation Panel -->
+    <div id="explanation-panel" class="floating-panel explanation-panel">
+        <div class="panel-header">
+            <div class="drag-handle"><i class="fas fa-grip-lines-vertical"></i></div>
+            <h3><i class="fas fa-lightbulb"></i> Explanation</h3>
+            <div class="panel-controls">
+                <button id="pin-explanation-btn" class="pin-btn" title="Pin/Unpin Panel">
+                    <i class="fas fa-thumbtack"></i>
+                </button>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div id="explanation-text" class="explanation">
+                Welcome to AlgoViz! Select a drawing tool to create your graph, then choose an algorithm to visualize.
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Steps Panel -->
+    <div id="floating-steps-panel" class="floating-panel hidden">
+        <div class="panel-header">
+            <div class="drag-handle"><i class="fas fa-grip-lines-vertical"></i></div>
+            <h3><i class="fas fa-list-ol"></i> Algorithm Steps</h3>
+            <div class="panel-controls">
+                <button id="close-panel-btn" class="close-btn" title="Close Panel"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div class="panel-content">
+            <div id="algorithm-steps-table" class="steps-table"></div>
+        </div>
+    </div>
+
+    <!-- Node Editor Dialog -->
+    <div id="node-editor-dialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3><i class="fas fa-edit"></i> Edit Node</h3>
+            <div class="form-group">
+                <label for="node-name-input">Name:</label>
+                <input type="text" id="node-name-input" class="input">
+            </div>
+            <div class="dialog-buttons">
+                <button id="save-node-btn" class="btn primary">Save</button>
+                <button id="cancel-node-btn" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edge Editor Dialog -->
+    <div id="edge-editor-dialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3><i class="fas fa-edit"></i> Edit Edge</h3>
+            <div class="form-group">
+                <label for="edge-weight-input">Weight:</label>
+                <input type="number" id="edge-weight-input" class="input" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="edge-directed-input">
+                    <span>Is Directed</span>
+                </label>
+            </div>
+            <div class="dialog-buttons">
+                <button id="save-edge-btn" class="btn primary">Save</button>
+                <button id="cancel-edge-btn" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsaved Changes Alert Dialog -->
+    <div id="unsaved-changes-dialog" class="dialog hidden">
+        <div class="dialog-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Unsaved Changes</h3>
+            <p>Are you sure you want to proceed? Your current changes will be lost.</p>
+            <div class="dialog-buttons">
+                <button id="proceed-btn" class="btn primary">Proceed</button>
+                <button id="cancel-proceed-btn" class="btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/graph.js"></script>
+    <script src="js/algorithms/prim.js"></script>
+    <script src="js/algorithms/kruskal.js"></script>
+    <script src="js/algorithms/dijkstra.js"></script>
+    <script src="js/algorithms/bellmanFord.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
