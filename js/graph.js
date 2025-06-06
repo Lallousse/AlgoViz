@@ -56,6 +56,12 @@ class Graph {
             return null;
         }
 
+        // Ensure isDirected is explicitly set based on algorithm
+        if (isDirected === undefined) {
+            const currentAlgorithm = document.getElementById('algorithm-select').value;
+            isDirected = currentAlgorithm === 'dijkstra' || currentAlgorithm === 'bellmanFord';
+        }
+
         const edge = new Edge(null, fromNodeId, toNodeId, weight, isDirected);
         this.edges.push(edge);
         this.isSaved = false;

@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('select-move-btn').addEventListener('click', () => setDrawingMode('select'));
     document.getElementById('add-node-btn').addEventListener('click', () => setDrawingMode('addNode'));
     document.getElementById('add-edge-btn').addEventListener('click', () => setDrawingMode('addEdge'));
+    document.getElementById('flip-edge-btn').addEventListener('click', flipSelectedEdge);
     document.getElementById('delete-selected-btn').addEventListener('click', deleteSelected);
     
     document.getElementById('select-start-node-btn').addEventListener('click', () => {
@@ -140,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('algorithm-select').addEventListener('change', () => {
         updateStartNodeVisibility();
+        updateEdgeDirections();
         resetVisualization();
     });
     
@@ -152,6 +154,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateDeleteButtonState() {
         const hasSelection = canvas.selectedElement !== null;
         ui.setButtonEnabled('delete-selected-btn', hasSelection);
+        
+        // Enable flip edge button only if a directed edge is selected
+        let canFlipEdge = false;
+        if (canvas.selectedElement && canvas.selectedElement.type === 'edge') {
+            const edge = graph.getEdge(canvas.selectedElement.id);
+            // Check if the edge exists and is directed (explicitly true)
+            canFlipEdge = edge && (edge.isDirected === true);
+        }
+        ui.setButtonEnabled('flip-edge-btn', canFlipEdge);
     }
     
     // Function to set the drawing mode
@@ -538,6 +549,39 @@ document.addEventListener('DOMContentLoaded', function() {
             ui.setButtonText('toggle-steps-panel-btn', '<i class="fas fa-eye-slash"></i> Hide Steps Panel');
         } else {
             ui.setButtonText('toggle-steps-panel-btn', '<i class="fas fa-table"></i> Show Steps Panel');
+        }
+    }
+    
+    // Function to update edge directions based on selected algorithm
+    function updateEdgeDirections() {
+        const algorithmValue = document.getElementById('algorithm-select').value;
+        const shouldBeDirected = algorithmValue === 'dijkstra' || algorithmValue === 'bellmanFord';
+        
+        if (shouldBeDirected) {
+            // Update all edges to be directed when switching to Dijkstra or Bellman-Ford
+            graph.edges.forEach(edge => {
+                if (edge.isDirected === undefined || edge.isDirected === false) {
+                    edge.isDirected = true;
+                    graph.isSaved = false;
+                }
+            });
+            canvas.render();
+        }
+    }
+    
+    // Function to flip the direction of the selected edge
+    function flipSelectedEdge() {
+        if (canvas.selectedElement && canvas.selectedElement.type === 'edge') {
+            const edge = graph.getEdge(canvas.selectedElement.id);
+            if (edge && edge.isDirected === true) {
+                // Swap from and to nodes
+                const temp = edge.from;
+                edge.from = edge.to;
+                edge.to = temp;
+                graph.isSaved = false;
+                canvas.render();
+                showToast('Edge direction flipped');
+            }
         }
     }
     

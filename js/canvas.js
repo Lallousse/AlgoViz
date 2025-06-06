@@ -412,6 +412,10 @@ class GraphCanvas {
         if (isDirected === undefined) {
             const currentAlgorithm = document.getElementById('algorithm-select').value;
             isDirected = currentAlgorithm === 'dijkstra' || currentAlgorithm === 'bellmanFord';
+            // Update the edge's isDirected property to match the algorithm requirement
+            if (isDirected) {
+                edge.isDirected = true;
+            }
         }
         
         // Create edge line

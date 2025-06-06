@@ -4,7 +4,7 @@ AlgoViz is an interactive web application for visualizing graph algorithms. It p
 
 ## Features
 
-- **Intuitive Graph Drawing Interface**: Add/edit/delete nodes and weighted/directed edges
+- **Intuitive Graph Drawing Interface**: Add/edit/delete nodes and weighted/gitdirected edges
 - **Algorithm Visualization**: Step-by-step visualization of:
   - Prim's Algorithm (Minimum Spanning Tree)
   - Kruskal's Algorithm (Minimum Spanning Tree)
