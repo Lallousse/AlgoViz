@@ -34,6 +34,17 @@ function generateDijkstraSteps(graph, startNodeId) {
     const headers = ["Sequence", ...nodes.map(node => node.name)];
     const rows = [];
     
+    // Create the initial row showing distances before any node is visited
+    const initialRow = [graph.getNode(startNodeId).name];
+    nodes.forEach(node => {
+        if (node.id === startNodeId) {
+            initialRow.push("0(-)");
+        } else {
+            initialRow.push("∞(-)");
+        }
+    });
+    rows.push(initialRow);
+    
     // Add initial step
     steps.push({
         type: 'node-highlight',
@@ -54,6 +65,39 @@ function generateDijkstraSteps(graph, startNodeId) {
     
     // Track the sequence of visited nodes
     let sequence = graph.getNode(startNodeId).name;
+    
+    // Process the direct neighbors of the start node
+    const startNeighbors = graph.getNeighbors(startNodeId);
+    let hasUpdatedNeighbors = false;
+    
+    for (const neighbor of startNeighbors) {
+        const neighborNode = graph.getNode(neighbor.nodeId);
+        const edge = graph.getEdge(neighbor.edgeId);
+        
+        // Update distance
+        distances[neighborNode.id] = edge.weight;
+        predecessors[neighborNode.id] = startNodeId;
+        hasUpdatedNeighbors = true;
+    }
+    
+    // If we updated any neighbors, add a row showing the updated distances
+    if (hasUpdatedNeighbors) {
+        const updatedRow = [sequence];
+        nodes.forEach(node => {
+            if (node.id === startNodeId) {
+                updatedRow.push("x");
+            } else {
+                const dist = distances[node.id];
+                const pred = predecessors[node.id];
+                const predName = pred ? graph.getNode(pred).name : "-";
+                updatedRow.push(dist === Infinity ? "∞(-)" : `${dist}(${predName})`);
+            }
+        });
+        rows.push(updatedRow);
+    }
+    
+    // Mark start node as visited
+    visited.add(startNodeId);
     
     // Main algorithm loop
     while (visited.size < nodes.length) {
@@ -84,28 +128,8 @@ function generateDijkstraSteps(graph, startNodeId) {
             break;
         }
         
-        // Mark the node as visited
-        visited.add(minNode.id);
-        
-        // Update the sequence
-        if (minNode.id !== startNodeId) {
-            sequence += minNode.name;
-        }
-        
-        // Create row for the current state
-        const row = [sequence];
-        nodes.forEach(node => {
-            if (visited.has(node.id)) {
-                row.push("x");
-            } else {
-                const dist = distances[node.id];
-                const pred = predecessors[node.id];
-                const predName = pred ? graph.getNode(pred).name : "-";
-                row.push(dist === Infinity ? "∞(-)" : `${dist}(${predName})`);
-            }
-        });
-        
-        rows.push(row);
+        // Update the sequence with the node we're about to visit
+        sequence += minNode.name;
         
         // Add a step to highlight the current node
         steps.push({
@@ -130,9 +154,44 @@ function generateDijkstraSteps(graph, startNodeId) {
             tableData: { headers, rows: [...rows] }
         });
         
-        // Explore neighbors
+        // Mark the node as visited
+        visited.add(minNode.id);
+        
+        // Explore neighbors and update distances BEFORE creating the table row
         const neighbors = graph.getNeighbors(minNode.id);
         
+        for (const neighbor of neighbors) {
+            const neighborNode = graph.getNode(neighbor.nodeId);
+            
+            if (visited.has(neighborNode.id)) continue;
+            
+            const edge = graph.getEdge(neighbor.edgeId);
+            const newDistance = distances[minNode.id] + edge.weight;
+            
+            // If we found a shorter path
+            if (newDistance < distances[neighborNode.id]) {
+                distances[neighborNode.id] = newDistance;
+                predecessors[neighborNode.id] = minNode.id;
+            }
+        }
+        
+        // NOW create row for the current state after visiting the node and updating neighbors
+        const row = [sequence];
+        nodes.forEach(node => {
+            if (visited.has(node.id)) {
+                // Already visited nodes
+                row.push("x");
+            } else {
+                // Unvisited nodes - show current distance and predecessor
+                const dist = distances[node.id];
+                const pred = predecessors[node.id];
+                const predName = pred ? graph.getNode(pred).name : "-";
+                row.push(dist === Infinity ? "∞(-)" : `${dist}(${predName})`);
+            }
+        });
+        rows.push(row);
+        
+        // Now add visualization steps for each neighbor exploration
         for (const neighbor of neighbors) {
             const neighborNode = graph.getNode(neighbor.nodeId);
             
@@ -165,15 +224,11 @@ function generateDijkstraSteps(graph, startNodeId) {
                 tableData: { headers, rows: [...rows] }
             });
             
-            // Calculate new distance
             const newDistance = distances[minNode.id] + edge.weight;
             
-            // If we found a shorter path
-            if (newDistance < distances[neighborNode.id]) {
-                distances[neighborNode.id] = newDistance;
-                predecessors[neighborNode.id] = minNode.id;
-                
-                // Add a step to update the distance
+            // If this is the path we're using, highlight it
+            if (distances[neighborNode.id] === newDistance && predecessors[neighborNode.id] === minNode.id) {
+                // Add a step to show the updated distance
                 steps.push({
                     type: 'node-update',
                     elementId: neighborNode.id,
@@ -198,7 +253,7 @@ function generateDijkstraSteps(graph, startNodeId) {
                     }),
                     tableData: { headers, rows: [...rows] }
                 });
-            } else {
+            } else if (distances[neighborNode.id] < newDistance) {
                 // Add a step to show that the current path is better
                 steps.push({
                     type: 'text-update',

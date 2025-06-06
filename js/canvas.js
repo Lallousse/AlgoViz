@@ -180,7 +180,13 @@ class GraphCanvas {
                     this.svg.appendChild(this.tempEdgeLine);
                 } else if (this.tempEdgeSource.id !== node.id) {
                     // Second node selected, create the edge
-                    const edge = this.graph.addEdge(this.tempEdgeSource.id, node.id);
+                    
+                    // Check if we're using Dijkstra or Bellman-Ford algorithm
+                    const currentAlgorithm = document.getElementById('algorithm-select').value;
+                    const shouldBeDirected = currentAlgorithm === 'dijkstra' || currentAlgorithm === 'bellmanFord';
+                    
+                    // Create the edge with the appropriate directed property
+                    const edge = this.graph.addEdge(this.tempEdgeSource.id, node.id, 1, shouldBeDirected);
                     
                     // Clean up temporary edge
                     this.svg.removeChild(this.tempEdgeLine);

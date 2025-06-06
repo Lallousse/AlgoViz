@@ -183,7 +183,13 @@ class UI {
         if (!edge) return;
         
         document.getElementById('edge-weight-input').value = edge.weight;
-        document.getElementById('edge-directed-input').checked = edge.isDirected === true;
+        
+        // Check if we're using Dijkstra or Bellman-Ford algorithm
+        const currentAlgorithm = document.getElementById('algorithm-select').value;
+        const shouldBeDirected = currentAlgorithm === 'dijkstra' || currentAlgorithm === 'bellmanFord';
+        
+        // Set the checkbox state based on algorithm or existing edge property
+        document.getElementById('edge-directed-input').checked = shouldBeDirected || edge.isDirected === true;
         
         this.edgeEditorDialog.classList.remove('hidden');
         document.getElementById('edge-weight-input').focus();
