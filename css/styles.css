@@ -204,7 +204,7 @@ main {
     }
     
     .panel-content {
-        max-height: 30vh !important;
+        /* No height restriction to allow unlimited vertical scrolling */
     }
 }
 
@@ -585,7 +585,6 @@ main {
 .panel-content {
     padding: 0.75rem;
     overflow-y: auto;
-    max-height: calc(80vh - 50px);
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     scrollbar-width: thin;
     scrollbar-color: var(--muted-foreground) transparent;
@@ -821,5 +820,5 @@ main {
 /* Steps Panel - position it below the explanation panel */
 #floating-steps-panel {
     top: calc(80px + 220px);
-    max-height: calc(80vh - 220px);
+    /* No max-height restriction to allow unlimited vertical resizing */
 } 
